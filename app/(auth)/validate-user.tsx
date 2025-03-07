@@ -5,18 +5,19 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
-import React, { useState } from "react";
-import OTPInput from "@/components/wrapper/OtpInput";
-import HeaderBox from "@/components/header/HeaderBox";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useAuthentication } from "@/lib/actions/user.actions";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ValidateUserSchema } from "@/types/auth";
-import { validateUserSchema } from "@/schema/validation";
-import { THEME } from "@/constants/theme";
-import Button from "@/components/shared/Button";
+} from 'react-native';
+import React, { useState } from 'react';
+import OTPInput from '@/components/wrapper/OtpInput';
+
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useAuthentication } from '@/lib/actions/user.actions';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ValidateUserSchema } from '@/types/auth';
+import { validateUserSchema } from '@/schema/validation';
+import { THEME } from '@/constants/theme';
+import Button from '@/components/shared/Button';
+import HeaderBox from '@/components/example/header/HeaderBox';
 
 const ValidateUserScreen = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -38,7 +39,7 @@ const ValidateUserScreen = () => {
 
   const onSubmit = async (data: ValidateUserSchema) => {
     if (!data || data.otp.length < 6) {
-      setErrorMessage("Field not Complete");
+      setErrorMessage('Field not Complete');
     }
 
     const result = await validateUser(data);
@@ -53,7 +54,7 @@ const ValidateUserScreen = () => {
   return (
     <View>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{}}
       >
         <HeaderBox title="Enter OTP" message="Chceck your email for code" />
@@ -62,7 +63,7 @@ const ValidateUserScreen = () => {
             control={control}
             name="otp"
             render={({ field: { value } }) => (
-              <OTPInput length={6} onChange={(otp) => setValue("otp", otp)} />
+              <OTPInput length={6} onChange={(otp) => setValue('otp', otp)} />
             )}
           />
           {errors.otp && (

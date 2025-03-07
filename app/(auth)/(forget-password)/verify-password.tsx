@@ -6,18 +6,19 @@ import {
   Text,
   TextInput,
   View,
-} from "react-native";
-import React, { useState } from "react";
-import Button from "@/components/shared/Button";
-import OTPInput from "@/components/wrapper/OtpInput";
-import HeaderBox from "@/components/header/HeaderBox";
-import { Controller, useForm } from "react-hook-form";
-import { useAuthentication } from "@/lib/actions/user.actions";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { THEME } from "@/constants/theme";
-import { ChangePasswordSchema, ForgetPasswordSchema } from "@/types/auth";
-import { changePasswordSchema } from "@/schema/validation";
+} from 'react-native';
+import React, { useState } from 'react';
+import Button from '@/components/shared/Button';
+import OTPInput from '@/components/wrapper/OtpInput';
+
+import { Controller, useForm } from 'react-hook-form';
+import { useAuthentication } from '@/lib/actions/user.actions';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { THEME } from '@/constants/theme';
+import { ChangePasswordSchema, ForgetPasswordSchema } from '@/types/auth';
+import { changePasswordSchema } from '@/schema/validation';
+import HeaderBox from '@/components/example/header/HeaderBox';
 
 const VerifyPassword = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -40,7 +41,7 @@ const VerifyPassword = () => {
 
   const onSubmit = async (data: ChangePasswordSchema) => {
     if (!data || data.otp.length < 6) {
-      setErrorMessage("Field not Complete");
+      setErrorMessage('Field not Complete');
     }
 
     const result = await changePassword(data);
@@ -70,12 +71,12 @@ const VerifyPassword = () => {
       }}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{}}
       >
         <HeaderBox
           title="Enter New Password and OTP "
-          message="Chceck your email for code"
+          message={`Confirm the email sent to ${email} and enter the verification code. Code expires in time 10minutes count down here`}
         />
         <View style={{ padding: 20 }}>
           <View style={styles.label}>
@@ -87,7 +88,7 @@ const VerifyPassword = () => {
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={styles.inputField}
-                placeholder={`${email}`}
+                placeholder={'Enter New Password'}
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
@@ -101,7 +102,7 @@ const VerifyPassword = () => {
             control={control}
             name="otp"
             render={({ field: { value } }) => (
-              <OTPInput length={6} onChange={(otp) => setValue("otp", otp)} />
+              <OTPInput length={6} onChange={(otp) => setValue('otp', otp)} />
             )}
           />
           {errors.otp && (
@@ -109,7 +110,7 @@ const VerifyPassword = () => {
           )}
 
           {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-          <View style={{ flexDirection: "row", gap: 50, marginTop: 30 }}>
+          <View style={{ flexDirection: 'row', gap: 50, marginTop: 30 }}>
             <Button
               title="Submit"
               onPress={handleSubmit(onSubmit)}
@@ -123,9 +124,9 @@ const VerifyPassword = () => {
               containerStyle={{
                 height: 50,
                 flex: 1,
-                backgroundColor: "white",
+                backgroundColor: 'white',
               }}
-              textStyle={{ color: "black" }}
+              textStyle={{ color: 'black' }}
               current_state="Outline"
             />
           </View>
@@ -145,10 +146,10 @@ const styles = StyleSheet.create({
     fontFamily: THEME.FONT_FAMILY.REGULAR,
   },
   inputField: {
-    width: "100%",
+    width: '100%',
     height: 40,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 10,

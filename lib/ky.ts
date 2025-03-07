@@ -1,42 +1,89 @@
-import ky from "ky";
-import useAuthStore from "@/store/auth/auth";
-import { isTokenExpired } from "./token-helper";
-// import { BASE_URL as BASE_TEST_URL } from "@env";
+import ky, { NormalizedOptions } from 'ky';
 
-// Define your ky instance
-const http = ky.create({
+import { getAccessToken } from '../store/token/token-manager';
+
+interface QueuePromise {
+  resolve: (value: string | null) => void;
+  reject: (reason?: unknown) => void;
+}
+
+let isRefreshing = false; // Flag to prevent multiple refresh attempts
+let failedQueue: QueuePromise[] = []; // Queue to hold failed requests during token refresh
+
+// Function to process the queue after refresh
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+const baseclient = ky.create({
   prefixUrl: process.env.EXPO_PUBLIC_API_BASEURL,
-  timeout: 10000,
+  timeout: 60000,
   retry: 3,
+});
 
+const http = baseclient.extend({
   hooks: {
     beforeRequest: [
-      async (request) => {
-        const { accessToken, refreshTokenFlow, setStatus } =
-          useAuthStore.getState();
-
-        // Check if the access token exists and is expired
-        if (accessToken && isTokenExpired(accessToken)) {
-          try {
-            await refreshTokenFlow();
-          } catch {
-            setStatus("unauthenticated");
-          }
-        }
-
-        // Attach the refreshed or existing access token to the request
-        const updatedAccessToken = useAuthStore.getState().accessToken;
-        if (updatedAccessToken) {
-          request.headers.set("Authorization", `Bearer ${updatedAccessToken}`);
+      async (request: Request) => {
+        const token = await getAccessToken();
+        if (token) {
+          request.headers.set('Authorization', `Bearer ${token}`);
         }
       },
     ],
     afterResponse: [
-      async (request, options, response) => {
+      async (
+        request: Request,
+        options: NormalizedOptions,
+        response: Response
+      ) => {
         if (response.status === 401) {
-          const { resetStore } = useAuthStore.getState();
-          resetStore();
+          const originalRequest = request.clone();
+
+          if (!isRefreshing) {
+            isRefreshing = true; // Dynamically import useAuthStore and ensure it's typed correctly
+
+            const { default: useAuthStore } = await import(
+              '../store/auth/auth'
+            );
+            try {
+              // Attempt to refresh the access token
+              await useAuthStore.getState().refreshTokenFlow();
+              const newToken = useAuthStore.getState().accessToken;
+              console.log('newTokem', newToken);
+
+              if (newToken) {
+                // Add the new token to the original request
+                request.headers.set('Authorization', `Bearer ${newToken}`);
+                processQueue(null, newToken); // Retry the original request with the new token
+
+                return baseclient(originalRequest);
+              } else {
+                throw new Error('Token refresh failed');
+              }
+            } catch (error) {
+              processQueue(error, null);
+
+              await useAuthStore.getState().clearTokens(); // Clear tokens on failure
+              return response; // Return the original 401 response
+            } finally {
+              isRefreshing = false;
+            }
+          } // Queue the requests while the token is being refreshed
+
+          return new Promise<string | null>((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          });
         }
+
+        return response;
       },
     ],
   },

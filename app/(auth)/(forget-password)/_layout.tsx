@@ -1,12 +1,11 @@
-import { TransitionPresets } from "@react-navigation/bottom-tabs";
-import { Stack } from "expo-router";
+import { TransitionPresets } from '@react-navigation/bottom-tabs';
+import { Stack } from 'expo-router';
 
 const ForgetPasswordLayout = () => {
   return (
     <Stack
       screenOptions={{
         ...TransitionPresets.FadeTransition,
-        presentation: "modal",
         headerShown: false,
       }}
     >

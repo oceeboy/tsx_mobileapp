@@ -5,26 +5,27 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
-import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import HeaderBox from "@/components/header/HeaderBox";
-import { THEME } from "@/constants/theme";
-import AuthForm from "@/components/wrapper/AuthForm";
+} from 'react-native';
+import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { THEME } from '@/constants/theme';
+import AuthForm from '@/components/wrapper/AuthForm';
+import HeaderBox from '@/components/example/header/HeaderBox';
 
 const SignInScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={{ flex: 1, justifyContent: "center" }}
+          contentContainerStyle={{ flex: 1, justifyContent: 'center' }}
         >
           <HeaderBox
-            title={"Sign In"}
-            message={"Please enter your details to sign in"}
+            title={'Sign In'}
+            message={'Please enter your details to sign in'}
           />
           <AuthForm type="SignIn" />
         </ScrollView>
