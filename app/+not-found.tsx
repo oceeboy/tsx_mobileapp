@@ -1,13 +1,13 @@
-import { Link, router } from "expo-router";
-import { Pressable, Text, View } from "react-native";
-import React from "react";
+import { Link, router } from 'expo-router';
+import { Pressable, Text, View } from 'react-native';
+import React from 'react';
 
 const NotFoundPage = () => {
   return (
     <View
       style={{
         flex: 1,
-        justifyContent: "center",
+        justifyContent: 'center',
       }}
     >
       <Text>Not found Page</Text>
@@ -15,15 +15,15 @@ const NotFoundPage = () => {
         style={{
           height: 50,
           marginHorizontal: 20,
-          justifyContent: "center",
-          alignItems: "center",
+          justifyContent: 'center',
+          alignItems: 'center',
           borderWidth: 1,
-          backgroundColor: "lightgray",
+          backgroundColor: 'lightgray',
           borderRadius: 5,
         }}
-        onPress={() => router.replace("/home")}
+        onPress={() => router.back()}
       >
-        <Text style={{ color: "blue" }}>go to home</Text>
+        <Text style={{ color: 'blue' }}>go to home</Text>
       </Pressable>
     </View>
   );
