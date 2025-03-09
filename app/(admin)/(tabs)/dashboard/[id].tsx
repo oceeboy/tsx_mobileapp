@@ -1,6 +1,6 @@
 import HeaderBack from '@/components/shared/HeaderBack';
 import { THEME } from '@/constants/theme';
-import { AdminProductDetail } from '@/modules/admindashboard';
+import { AdminProductDetail, EditDelete } from '@/modules/admindashboard';
 
 import { useLocalSearchParams } from 'expo-router';
 import { Text } from 'react-native';
@@ -19,6 +19,7 @@ export default function AdminProductDetailScreen() {
       <HeaderBack title="Admin Product Details" />
       <View style={{ flex: 1 }}>
         <AdminProductDetail id={id} />
+        <EditDelete id={id} />
       </View>
     </View>
   );

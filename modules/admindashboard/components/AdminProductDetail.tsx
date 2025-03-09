@@ -1,6 +1,13 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { useProduct } from '../hooks/useProduct.hook';
+import { useFetchOneProduct } from '../hooks/useProduct.hook';
 import { currencyFormatter } from '@/utils/helpers';
 
 interface AdminProductDetailProps {
@@ -8,7 +15,7 @@ interface AdminProductDetailProps {
 }
 
 export const AdminProductDetail = ({ id }: AdminProductDetailProps) => {
-  const { data, isLoading } = useProduct.fetchOneProduct(id); // Ensure correct hook usage
+  const { data, isLoading } = useFetchOneProduct(id); // Ensure correct hook usage
   const [selectedImage, setSelectedImage] = useState<string | undefined>(
     undefined
   );
@@ -43,75 +50,84 @@ export const AdminProductDetail = ({ id }: AdminProductDetailProps) => {
       : 'red';
 
   return (
-    <View style={styles.container}>
-      <View style={styles.productContainer}>
-        {/* Image Container */}
-        <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: selectedImage }}
-            style={styles.mainImage}
-            resizeMode="stretch"
-          />
-        </View>
-
-        {/* Product Details */}
-        <View style={styles.detailsContainer}>
-          <View style={styles.column}>
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: 'bold',
-                textTransform: 'capitalize',
-              }}
-            >
-              {data.productName}
-            </Text>
-            <Text>{data.sku}</Text>
+    <ScrollView>
+      <View style={styles.container}>
+        <View style={styles.productContainer}>
+          {/* Image Container */}
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: selectedImage }}
+              style={styles.mainImage}
+              resizeMode="stretch"
+            />
           </View>
-          <View style={styles.columnRight}>
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: 'bold',
-              }}
-            >
-              {currencyFormatter(data.productPrice)}
-            </Text>
-            <View style={styles.stockContainer}>
-              <View
-                style={[styles.stockIndicator, { backgroundColor: stockColor }]}
-              />
-              <Text>
-                {data.stockQuantity} {data.stockQuantity > 1 ? 'items' : 'item'}
+
+          {/* Product Details */}
+          <View style={styles.detailsContainer}>
+            <View style={styles.column}>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: 'bold',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {data.productName}
               </Text>
+              <Text>{data.sku}</Text>
+            </View>
+            <View style={styles.columnRight}>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: 'bold',
+                }}
+              >
+                {currencyFormatter(data.productPrice)}
+              </Text>
+              <View style={styles.stockContainer}>
+                <View
+                  style={[
+                    styles.stockIndicator,
+                    { backgroundColor: stockColor },
+                  ]}
+                />
+                <Text>
+                  {data.stockQuantity}{' '}
+                  {data.stockQuantity > 1 ? 'items' : 'item'}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Thumbnail Selection */}
-        <View style={styles.thumbnailContainer}>
-          {data.productImages?.map((img, index) => (
-            <TouchableOpacity key={index} onPress={() => setSelectedImage(img)}>
-              <Image source={{ uri: img }} style={styles.thumbnail} />
-            </TouchableOpacity>
-          ))}
-        </View>
+          {/* Thumbnail Selection */}
+          <View style={styles.thumbnailContainer}>
+            {data.productImages?.map((img, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setSelectedImage(img)}
+              >
+                <Image source={{ uri: img }} style={styles.thumbnail} />
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {/* category */}
-        <View style={styles.category}>
-          <Text>Category: {data.category}</Text>
-        </View>
-        {/* Description */}
-        <View style={styles.productDescription}>
-          <Text style={{ fontWeight: 'bold' }}>Description</Text>
-          <Text>
-            {data.productDescription
-              ? data.productDescription
-              : 'No description available'}
-          </Text>
+          {/* category */}
+          <View style={styles.category}>
+            <Text>Category: {data.category}</Text>
+          </View>
+          {/* Description */}
+          <View style={styles.productDescription}>
+            <Text style={{ fontWeight: 'bold' }}>Description</Text>
+            <Text numberOfLines={8}>
+              {data.productDescription
+                ? data.productDescription
+                : 'No description available'}
+            </Text>
+          </View>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

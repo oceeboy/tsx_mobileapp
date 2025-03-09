@@ -1,50 +1,65 @@
+import Button from '@/components/shared/Button';
+import HeaderBack from '@/components/shared/HeaderBack';
+import FormField from '@/components/wrapper/FormField';
+import { useEditProduct, useFetchOneProduct } from '@/modules/admindashboard';
+import { editProductSchema } from '@/schema/editproduct.schema';
+import { EditProductSchema } from '@/types/product/edit-product.dto';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
+  StyleSheet,
   View,
   Text,
-  TextInput,
-  Image,
-  StyleSheet,
-  ScrollView,
-  Platform,
   KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Image,
   TouchableOpacity,
-  Alert,
-  LogBox,
 } from 'react-native';
-import { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createProductSchema } from '@/schema/product.schema';
-import { CreateProductDto } from '@/types/product/create-product.dto';
-import * as ImagePicker from 'expo-image-picker';
-// import HeaderBox from '@/components/header/HeaderBox';
-import Button from '@/components/shared/Button';
-import FormField from '@/components/wrapper/FormField';
-import { useCreateProduct } from '@/hooks/admin/useAdmin';
 import Animated, { FadeInRight, FadeOutRight } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import { Camera } from 'expo-camera';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Product } from '@/types/product';
 
-// LogBox.ignoreAllLogs();
+export default function AdminEditProductScreen() {
+  const { id } = useLocalSearchParams();
+  const router = useRouter();
+  const productId = id as string;
 
-export default function AdminCreate() {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [cameraPermission, setCameraPermission] = useState<boolean>(false);
+  const { data: product, isLoading: fetchingProduct } =
+    useFetchOneProduct(productId);
+  const { mutate: updateProduct, isPending: updating } = useEditProduct();
+
   const {
     control,
     handleSubmit,
     setValue,
-    reset,
     formState: { errors },
-  } = useForm<CreateProductDto>({
-    resolver: zodResolver(createProductSchema),
+  } = useForm<EditProductSchema>({
+    resolver: zodResolver(editProductSchema),
   });
 
-  const { mutate, isLoading } = useCreateProduct();
+  // useEffect(() => {
+  //   console.log(errors);
+  // }, [errors]);
 
-  // Function to pick images from gallery
+  useEffect(() => {
+    if (product) {
+      setValue('id', product._id);
+      setValue('productName', product.productName);
+      setValue('productDescription', product.productDescription);
+      setValue('productPrice', product.productPrice);
+      setValue('category', product.category);
+      setValue('sku', product.sku),
+        setValue('stockQuantity', product.stockQuantity);
+      setSelectedImages(product.productImages || []);
+    }
+  }, [product, setValue]);
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -56,100 +71,50 @@ export default function AdminCreate() {
     if (!result.canceled) {
       const uris = result.assets.map((asset) => asset.uri);
       const updatedImages = [...selectedImages, ...uris];
-
       setSelectedImages(updatedImages);
       setValue('productImages', updatedImages, { shouldValidate: true });
-
-      console.log('Updated selected images:', updatedImages);
     }
   };
 
-  const requestCameraPermissions = async () => {
-    const { status } = await Camera.requestCameraPermissionsAsync();
-    setCameraPermission(status === 'granted');
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission Denied',
-        'Camera access is required to take photos.'
-      );
-    }
-  };
-
-  const openCamera = async () => {
-    if (!cameraPermission) await requestCameraPermissions();
-
-    if (cameraPermission) {
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        quality: 1,
-        aspect: [4, 3],
-      });
-
-      if (!result.canceled) {
-        const uris = result.assets.map((asset) => asset.uri);
-        setSelectedImages((prev) => [...prev, ...uris]);
-      }
-    }
-  };
-
-  const chooseImageSource = () => {
-    Alert.alert(
-      'Select Image',
-      'Choose an option to add a product image',
-      [
-        { text: 'Take Photo', onPress: openCamera },
-        { text: 'Choose from Library', onPress: pickImage },
-        { text: 'Cancel', style: 'cancel' },
-      ],
-      { cancelable: true }
-    );
-  };
-  const onCreateProduct = async (data: CreateProductDto) => {
+  const onEditProduct = async (data: EditProductSchema) => {
     const formData = new FormData();
+    formData.append('id', data.id);
 
-    console.log('Data received in onCreateProduct:', data);
-
-    // Ensure productImages exists and is an array
-    if (selectedImages.length > 0) {
-      selectedImages.forEach((image, index) => {
-        formData.append(`productImages`, {
-          uri: image,
-          type: 'image/jpeg',
-          name: `product-${index}.jpg`,
-        } as any);
-      });
-    } else {
-      console.warn('No images selected!');
-    }
-
-    // Append other fields
-    Object.entries(data).forEach(([key, value]) => {
-      if (key !== 'productImages') {
-        formData.append(key, String(value));
-      }
+    selectedImages.forEach((image, index) => {
+      formData.append('productImages', {
+        uri: image,
+        type: 'image/jpeg',
+        name: `product-${index}.jpg`,
+      } as any);
     });
 
-    // Debug FormData contents
-    for (const pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
+    // Create an object matching the expected type
+    const updateData = {
+      id: data.id,
+      updateData: {
+        productName: data.productName,
+        productDescription: data.productDescription,
+        productPrice: data.productPrice,
+        category: data.category,
+        stockQuantity: data.stockQuantity,
+      },
+      images: selectedImages.map((image, index) => ({
+        uri: image,
+        type: 'image/jpeg',
+        name: `product-${index}.jpg`,
+      })),
+    };
 
-    mutate(formData, {
+    updateProduct(updateData, {
       onSuccess: () => {
-        reset();
-        setSelectedImages([]);
+        router.back();
       },
     });
   };
 
-  const removeImage = (index: number) => {
-    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
-    if (hoveredIndex === index) setHoveredIndex(null);
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* <HeaderBox title="Create Product" message={'Create a new product'} /> */}
+      <HeaderBack />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -158,10 +123,9 @@ export default function AdminCreate() {
           <View style={styles.formContainer}>
             {selectedImages.length > 0 ? (
               <>
-                {/* Main Image */}
                 <Animated.View
-                  entering={FadeInRight.springify().damping(80).stiffness(200)}
-                  exiting={FadeOutRight.springify().damping(80).stiffness(200)}
+                  entering={FadeInRight.springify()}
+                  exiting={FadeOutRight.springify()}
                   style={styles.imageWrapper}
                 >
                   <Image
@@ -170,13 +134,11 @@ export default function AdminCreate() {
                   />
                   <TouchableOpacity
                     style={styles.removeIcon}
-                    onPress={() => removeImage(0)}
+                    onPress={() => setSelectedImages(selectedImages.slice(1))}
                   >
                     <Ionicons name="close-circle" size={24} color="red" />
                   </TouchableOpacity>
                 </Animated.View>
-
-                {/* Thumbnails */}
                 <Animated.ScrollView
                   entering={FadeInRight.springify().damping(0.5).delay(100)}
                   horizontal
@@ -188,7 +150,6 @@ export default function AdminCreate() {
                       key={index}
                       onPress={() => {
                         const updatedImages = [...selectedImages];
-
                         const [selected] = updatedImages.splice(index + 1, 1);
                         updatedImages.unshift(selected);
                         setSelectedImages(updatedImages);
@@ -200,10 +161,7 @@ export default function AdminCreate() {
                 </Animated.ScrollView>
               </>
             ) : (
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={chooseImageSource}
-              >
+              <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
                 <Text style={styles.uploadText}>Upload New</Text>
               </TouchableOpacity>
             )}
@@ -211,10 +169,9 @@ export default function AdminCreate() {
             <FormField
               control={control}
               name="productName"
-              label="Product Name"
+              label="Product Namess"
               errorMessage={errors.productName?.message}
             />
-
             <FormField
               control={control}
               name="productDescription"
@@ -222,7 +179,6 @@ export default function AdminCreate() {
               errorMessage={errors.productDescription?.message}
               multiline
             />
-
             <FormField
               control={control}
               name="productPrice"
@@ -230,14 +186,12 @@ export default function AdminCreate() {
               errorMessage={errors.productPrice?.message}
               textParseInt
             />
-
             <FormField
               control={control}
               name="category"
               label="Category"
               errorMessage={errors.category?.message}
             />
-
             <FormField
               control={control}
               name="stockQuantity"
@@ -249,14 +203,13 @@ export default function AdminCreate() {
             <Button
               title="Pick Image"
               containerStyle={{ height: 50 }}
-              onPress={chooseImageSource}
+              onPress={pickImage}
               current_state="Active"
             />
-
             <Button
-              title={isLoading ? 'Uploading...' : 'Upload Product'}
+              title={updating ? 'Updating...' : 'Update Product'}
               containerStyle={{ height: 50 }}
-              onPress={handleSubmit(onCreateProduct)}
+              onPress={handleSubmit(onEditProduct)}
               current_state="Active"
             />
           </View>
@@ -273,16 +226,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 8,
-    marginBottom: 10,
     borderWidth: 2,
-    borderColor: '#ddd',
-  },
-  thumbnailContainer: { flexDirection: 'row', gap: 10 },
-  thumbnail: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    borderWidth: 1,
     borderColor: '#ddd',
   },
   uploadButton: {
@@ -309,5 +253,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 4,
+  },
+  thumbnailContainer: { flexDirection: 'row', gap: 10 },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
 });
