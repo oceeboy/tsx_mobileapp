@@ -12,6 +12,7 @@ export interface Variant {
 }
 
 export interface Product {
+  id: any;
   _id: string;
   productName: string;
   productDescription: string;

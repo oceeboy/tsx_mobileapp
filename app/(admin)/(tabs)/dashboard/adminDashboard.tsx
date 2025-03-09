@@ -5,6 +5,7 @@ import { Product } from '@/types/product';
 import { useRouter } from 'expo-router';
 import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { View, Text } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function AdminDashboard() {
     <>
       <View style={styles.container}>
         <UserHeader />
-        <FlatList
+        <Animated.FlatList
           data={ProductData}
           keyExtractor={(item) => item._id}
           renderItem={(item) => (
@@ -51,6 +52,7 @@ export default function AdminDashboard() {
               <Text>{item.item.productName}</Text>
             </TouchableOpacity>
           )}
+          keyboardDismissMode={'on-drag'}
         />
       </View>
     </>
